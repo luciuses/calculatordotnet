@@ -1,11 +1,19 @@
-﻿using System.Web.Mvc;
-using CalcWebUI.Components;
+﻿using System;
+using System.Web.Mvc;
 using CalcWebUI.Models;
+using CalcWebUI.Services;
 
 namespace CalcWebUI.Controllers
 {
 	public class HomeController : Controller
 	{
+		private readonly ICalculationService _calculationService;
+
+		public HomeController(ICalculationService calculationService)
+		{
+			_calculationService = calculationService;
+		}
+
 		[HttpGet]
 		public ActionResult Index()
 		{
@@ -15,20 +23,19 @@ namespace CalcWebUI.Controllers
 		}
 
 		[HttpPost]
-		public double Index(IndexInputModel input)
+		public ContentResult Index(IndexInputModel input)
 		{
-			switch (input.Operation)
+			string result;
+			try
 			{
-				case OperationType.Addition:
-					return input.Argument1 + input.Argument2;
-				case OperationType.Subtraction:
-					return input.Argument1 - input.Argument2;
-				case OperationType.Division:
-					return input.Argument1 / input.Argument2;
-				case OperationType.Multiplication:
-					return input.Argument1 * input.Argument2;
-				default: return double.NaN;
+				result = _calculationService.Calculate(input.Argument1, input.Argument2, input.Operation).ToString();
 			}
+			catch (Exception e)
+			{
+				result = $"Error:{e.Message}";
+			}
+
+			return Content(result);
 		}
 	}
 }
